@@ -1,0 +1,9 @@
+{
+    "host": "xxx.xxx.xxx.xxx",
+    "port": yyyyy,
+    "update_interval": 1.0,
+    "device_token": "xxxxx",
+    "offset": 300,
+    "funscript_paths": ["path1"],
+    "xbvr_url": "url to xbvr server"
+}
