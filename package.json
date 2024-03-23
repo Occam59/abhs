@@ -1,0 +1,20 @@
+{
+    "name": "hafs",
+    "version": "1.0.0",
+    "description": "HereSphere Autoblow Funscript Server",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Occam59",
+    "license": " GNU AFFERO GENERAL PUBLIC LICENSE",
+    "dependencies": {
+      "@xsense/autoblow-sdk": "^1.0.5",
+      "ejs": "^3.1.9",
+      "express": "^4.19.1",
+      "got": "^14.2.1",
+      "lodash": "^4.17.21"
+    }
+  }
+  

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link href="/abhs.css" rel="stylesheet">
+  	<title>Autoblow player</title>
+</head>
+
+<body">
+
+    <div>
+        <h2>Autoblow HereSphere Connector</h2>
+    </div>
+    <div id="buttons">
+        <% if(!isConnectedHereSphere) { %> 
+            <button class="block" onclick="location.href = '/connectHereSphere'">Connect HereSphere</button>
+        <% } %>
+        <% if(!isConnectedAutoblow) { %> 
+            <button class="block" onclick="location.href = '/connectAutoblow'">Connect Autoblow</button>
+        <% } else { %>
+            <button class="block" onclick="location.href = '/disconnectAutoblow'">Disconnect Autoblow</button>
+        <% } %>
+        <input class="block" id="offset" type="humber" value="<%-offset%>">
+        <button class="block" onclick="location.href = '/setOffset/' + document.getElementById('offset').value">Set Offset</button>
+        <button class="block" onclick="location.href = '/'">Refresh</button>
+        <button class="block" onclick="ping()">Ping server</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Call</th>
+                <th>Number of Calls</th>
+                <th>Average response(ms)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% for(let p of Object.getOwnPropertyNames(responseTimes)) { %>
+                <tr><td><%-p%></td><td><%-responseTimes[p][0]%></td><td><%- responseTimes[p][0] ? Math.round(responseTimes[p][1]/responseTimes[p][0], 0) : 0 %></td></tr>
+            <% } %>
+        </tbody>
+    </table>
+<div>
+
+    </div>
+
+    <% if(isConnectedAutoblow && state && state.hasOwnProperty('operationalMode')) { %> 
+        <div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>State</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for(let p in state) { %>
+                    <tr><td><%-p%></td><td><%-state[p]%></td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+    <% } %>
+
+    <div>
+        <h4><%- message %></h4>
+    </div>
+
+    <div>
+        <h4>Logs</h4>
+        <div>
+            <p><%- log.join('</BR>') %></p>
+        </div>
+    </div>
+
+</body>
+<script type="text/javascript" src ="/abhs.js" ></script>
+</html>
