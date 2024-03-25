@@ -50,7 +50,7 @@ Refresh will reload the page showing the state of the Autoblow device and logs.
 
 Ping server will return the time for 100 pings to the abhs server. In principle the offset should be somewhere near half the average of these calls (time from headset to server) plus the average of the start response times minus half the average of the state/stop call response times (time from server to starting Autoblow).
 
-If active you will see the latest statee from the Autoblow device.
+If active you will see the latest state from the Autoblow device.
 
 The logs will show what is happening.
 
