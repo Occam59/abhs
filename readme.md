@@ -1,8 +1,8 @@
 # HereSphere Autoblow Funscript Server
 
-A server to play and control funscripts on an Autoblow AI Ultra from HereSphere playing local files through the HereSphere timestamp server.
+A web server to play and control funscripts on an Autoblow AI Ultra from HereSphere playing local files through the HereSphere timestamp server. Allows tyou to connect to your device and HereSpere; set offsets and monitor what's happening.
 
-Will work with XBVR and SMB. Because the timestamp server only gives filenames, funscript locations must be provided in the config file. 
+Will work with XBVR and SMB or local files. Because the HereSphere timestamp server only gives filenames, funscript locations must be provided in the config file unless XBVR is being used. 
 
 Not officially endorsed by or affiliated with HereSphere or Autoblow.
 
@@ -26,7 +26,7 @@ Set the following parameters in the config.json file.
     "port": yyyyy,  the port from the HereSphere Timestamp server
     "update_interval": 1.0,   the update interval from the HereSphere Timestamp server
     "device_token": "zzzzzzzzz", the Autoblow AI Ultra device token
-    "offset": 300, an offset for the time from a message to an Autoblow start command
+    "offset": 60, an offset for the time from a message to an Autoblow start command
     "funscript_paths": ["...."], an array of paths where funscripts are stored required because the timestamp server only gives filenames or xbvr ids and title
     "xbvr_url": "...", url to connect to your xbvr server
 
@@ -52,9 +52,9 @@ Ping server will return the time for 100 pings to the abhs server. In principle 
 
 If active you will see the latest statee from the Autoblow device.
 
-The logs will show what commands are executed.
+The logs will show what is happening.
 
 ## Step 5 - Enjoy your video
 
-Start your video from either SMB or xbvr and enjoy.
+Start your video from either SMB or XBVR and enjoy.
 
