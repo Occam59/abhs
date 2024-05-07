@@ -10,7 +10,7 @@
     "author": "Occam59",
     "license": " GNU AFFERO GENERAL PUBLIC LICENSE",
     "dependencies": {
-      "@xsense/autoblow-sdk": "^1.0.5",
+      "@xsense/autoblow-sdk": "1.0.5",
       "ejs": "^3.1.9",
       "express": "^4.19.1",
       "got": "^14.2.1",

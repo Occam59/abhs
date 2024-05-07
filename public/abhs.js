@@ -14,14 +14,16 @@ function pingOnce(i) {
     xhr.responseType = "json";
     xhr.onload = () => {
         i--;
-        if(i) {
+        if(i > 0) {
             pingOnce(i);
         } else {
             let tag = document.createElement("p");
-            var text = document.createTextNode(`100 pings in ${Date.now()-now}ms`);
+            let time = Date.now()-now
+            var text = document.createTextNode(`100 pings in ${time}ms`);
             tag.appendChild(text);
             var element = document.getElementById("buttons");
             element.appendChild(tag);
+            location.href = "/setPing/" + Math.round(time/100);
         }
     };        
 }

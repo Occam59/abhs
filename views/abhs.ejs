@@ -15,11 +15,14 @@
     <div id="buttons">
         <% if(!isConnectedHereSphere) { %> 
             <button class="block" onclick="location.href = '/connectHereSphere'">Connect HereSphere</button>
+        <% } else { %>
+            <button class="block" onclick="location.href = '/disconnectHereSphere'">Disconnect HereSphere</button>
         <% } %>
         <% if(!isConnectedAutoblow) { %> 
             <button class="block" onclick="location.href = '/connectAutoblow'">Connect Autoblow</button>
         <% } else { %>
             <button class="block" onclick="location.href = '/disconnectAutoblow'">Disconnect Autoblow</button>
+            <button class="block" onclick="location.href = '/latency'">Autoblow Estimate Latency</button>
         <% } %>
         <input class="block" id="offset" type="humber" value="<%-offset%>">
         <button class="block" onclick="location.href = '/setOffset/' + document.getElementById('offset').value">Set Offset</button>

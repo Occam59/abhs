@@ -33,6 +33,9 @@ var currentScript = '';
 var noScriptHandled = false;
 var message = '';
 var log = [];
+var currentScriptObject;
+var avgPings;
+var avgLatency;
 
 var responseTimes = {
     start: [0,0],
@@ -44,7 +47,7 @@ var responseTimes = {
   reads filename and parses JSON
 */
 function readJSONFile(filename) {
-    return JSON.parse(fs.readFileSync(filename));
+    return JSON.parse(fs.readFileSync(filename, 'utf-8').toString().trim());
 }
 
 
@@ -58,10 +61,13 @@ app.set('view engine', 'ejs'); // configure template engine
 app.use(express.static(path.join(__dirname, 'public'), { redirect:false, index: false })); // configure express to use public folder
 app.get('/', displayPage);
 app.get('/connectHereSphere', connectHereSphere);
+app.get('/disconnectHereSphere', disconnectHereSphere);
 app.get('/connectAutoblow', connectAutoblow);
 app.get('/disconnectAutoblow', disconnectAutoblow);
 app.get('/setOffset/:offset', setOffset);
 app.get('/ping', ping);
+app.get('/setPing/:ping', setPing);
+app.get('/latency', latency);
 
 
 const client = new net.Socket();
@@ -100,7 +106,7 @@ async function displayPage(req, res, state = null) {
     let data = {
         isConnectedAutoblow: isConnectedAutoblow,
         isConnectedHereSphere: isConnectedHereSphere,
-        offset: config.offset,
+        offset: avgLatency && avgPings ? avgLatency + avgPings : config.offset,
         message: message,
         state: state,
         log: log,
@@ -118,6 +124,12 @@ async function displayPage(req, res, state = null) {
 async function setOffset(req, res) {
     config.offset = parseInt(req.params.offset);
     message = 'Offset updated';
+    return displayPage(req, res);
+}
+
+async function setPing(req, res) {
+    avgPings = parseInt(req.params.ping);
+    message = `avgPings updated to ${avgPings}`;
     return displayPage(req, res);
 }
 
@@ -148,6 +160,19 @@ async function connectHereSphere(req, res) {
 }
 
 /*
+    Rounte for HereSphere timespamp server disconnection
+*/
+async function disconnectHereSphere(req, res) {
+    try {
+        client.destroy();
+    } catch(e) {
+
+    }
+    isConnectedHereSphere = false;
+    return displayPage(req, res);
+}
+
+/*
     Connects to HereSpere timestamp server and handles messages. Messages are converted to JSON. They are ignored if the device is not connected or we are already 
     processing a message. Possibilities are new video, new state or new time. Position reset if difference bwteen times > 0.1s.
 */
@@ -171,7 +196,12 @@ async function processHereSphereConnection() {
         }
 
         async function dataListener(data) {
-            let timeStamp = JSON.parse(data.toString('utf-8', 4));
+            let timeStamp;
+            try {
+                timeStamp = JSON.parse(data.toString('utf-8', 4));
+            } catch(e) {
+                return;
+            }
             // logger('Timestamp:', JSON.stringify(timeStamp));
             if (isABBusy || !isConnectedAutoblow) return;
             isABBusy = true;
@@ -182,11 +212,12 @@ async function processHereSphereConnection() {
             } else if (timeStamp.playerState != lastTimeStamp.playerState) {
                 logger('New state: ', timeStamp.playerState ? 'Paused' : 'Playing', true);
                 changeState(timeStamp);
-            } else if (Math.abs(timeStamp.currentTime - lastTimeStamp.currentTime - config.update_interval) > 0.1 && timeStamp.playerState == 0) {
+            } else if (Math.abs(timeStamp.currentTime - lastTimeStamp.currentTime - config.update_interval*timeStamp.playbackSpeed) > 0.1 && timeStamp.playerState == 0) {
                 logger('New time: ', timeStamp.currentTime, true);
                 changeTime(timeStamp);
             } else if (!lastTimeStamp || timeStamp.playbackSpeed != lastTimeStamp.playbackSpeed) {
                 logger('New speed: ', timeStamp.playbackSpeed);
+                changeSpeed(timeStamp);
             }
             lastTimeStamp = timeStamp;
             isABBusy = false;
@@ -212,25 +243,45 @@ async function changeVideo(timeStamp) {
     let funscript= await getFunscriptFilePath(timeStamp);
     let state = null;
     if(funscript) {
-        noScriptHandled = false;
-        logger('Loading funscript for file');
-        if(!isConnectedAutoblow) return;
-        try {
-            state = await autoblow.syncScriptUploadFunscriptFile(funscript);
-            currentScript = state.syncScriptToken
-            logState(state);
-            state = await changeState(timeStamp);
-        } catch(e) {
-            logger('Caught error loading funscript: ', e); 
-            isConnectedAutoblow = false; 
-        }
+        state = await setScript(funscript, timeStamp);
     } else {
         if(!noScriptHandled) {
             logger(timeStamp.path, ' has no corresponding funscript');
+            currentScriptObject = null;
             state = await stopAutoblow(timeStamp);
             noScriptHandled = true;
         }
     }
+}
+
+async function changeSpeed(timeStamp) {
+    let state = null;
+    if(currentScriptObject) {
+        state = await setScript(currentScriptObject, timeStamp);
+    }
+}
+
+async function setScript(funscript, timeStamp) {
+    let state = null;
+    noScriptHandled = false;
+    logger('Loading funscript for file');
+    if(!isConnectedAutoblow) return;
+    try {
+        // let fso = funscript;
+        let fso = JSON.parse(JSON.stringify(funscript));
+        _.each(fso.actions, a => { a.at = Math.round(a.at/timeStamp.playbackSpeed); });
+        console.log(_.last(funscript.actions).at);
+        console.log(_.last(fso.actions).at);
+        state = await autoblow.syncScriptUploadFunscriptFile(fso);
+        currentScriptObject = funscript;
+        currentScript = state.syncScriptToken
+        logState(state);
+        state = await changeState(timeStamp);
+    } catch(e) {
+        logger('Caught error loading funscript: ', e); 
+        isConnectedAutoblow = false; 
+    }
+    return state;
 }
 
 /*
@@ -302,6 +353,10 @@ function findFunscriptPath(filename) {
     return funscript;
 }
 
+function calcOffset(timeStamp) {
+    return Math.round(timeStamp.currentTime * 1000 / timeStamp.playbackSpeed + config.offset, 0);
+}
+
 /*
     Stops or starts the Autoblow device
 */
@@ -316,7 +371,7 @@ async function changeState(timeStamp) {
             responseTimes.stop[0]++;
             responseTimes.stop[1] += Date.now()-now;
         } else {
-            state = await autoblow.syncScriptStart(Math.round(timeStamp.currentTime * 1000 + config.offset, 0));
+            state = await autoblow.syncScriptStart(calcOffset(timeStamp));
             responseTimes.start[0]++;
             responseTimes.start[1] += Date.now()-now;
         }
@@ -338,7 +393,7 @@ async function changeTime(timeStamp) {
     if(!isConnectedAutoblow) return state;
     try {
         if(!timeStamp.playerState) {
-            let state = await autoblow.syncScriptStart(Math.round(timeStamp.currentTime *1000 + config.offset, 0));
+            let state = await autoblow.syncScriptStart(calcOffset(timeStamp));
             logState(state);
         }
     } catch(e) {
@@ -375,6 +430,22 @@ async function connectAB() {
     }
     isConnecting = false;
     return state;
+} 
+
+async function latency(req, res) {
+    try { 
+        logger('Estimating latency');
+        const info = await autoblow.estimateLatency(100);
+        message = 'Latency estimated from Autoblow device';
+        avgLatency = info;
+        logger("Latency:", avgLatency);
+    } catch(e) {
+        logger('Caught error estimating latency: ', e); 
+        message = 'Error estimating latency from Autoblow device';
+        isConnectedAutoblow = false; 
+        lastTimeStamp = nullTimeStamp;
+    }
+    return displayPage(req, res);
 }
 
 /*
