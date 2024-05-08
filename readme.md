@@ -40,21 +40,27 @@ Set your desired port in the environment
 
 Start HereSphere. Connect to the machine and port for the server in the browser.
 
-Click on Connect Autoblow. 
+Click on **Connect Autoblow**. 
 
-Click on Connect HereSphere. You may need to toggle the timestamp server from user settings if you have a problem connecting.
+Click on **Connect HereSphere**. You may need to toggle the timestamp server from user settings if you have a problem connecting.
 
-You can change the offset of the start commands temporarily from that in the config file by changing the input and clicking "Set Offset". Note there is also an offset you can use in HereSphere.
+You can change the offset of the start commands temporarily from that in the config file by changing the input and clicking **Set Offset**. Note there is also an offset you can use in HereSphere.
 
-Refresh will reload the page showing the state of the Autoblow device and logs.
+**Refresh** will reload the page showing the state of the Autoblow device and logs.
 
-Ping server will return the time for 100 pings to the abhs server. In principle the offset should be somewhere near half the average of these calls (time from headset to server) plus the average of the start response times minus half the average of the state/stop call response times (time from server to starting Autoblow).
+**Ping server** will return the time for 100 pings to the abhs server. In principle the offset should be somewhere near half the average of these calls (time from headset to server) plus the average of the start response times minus half the average of the state/stop call response times (time from server to starting Autoblow).
+
+**Autoblow Estimate Latency** calls the autoblow latency function.
+
+When both **Ping server** and **Autoblow Estimate Latency** have been run, the offset will be set to the sum of the two. Note the former will most likely only be a couple of millseconds.
 
 If active you will see the latest state from the Autoblow device.
 
 The logs will show what is happening.
 
+**Disconnect Autoblow** and **Disconnect HereSphere** can be used to detach the server from the device and HereSphere respectively.
+
 ## Step 5 - Enjoy your video
 
-Start your video from either SMB or XBVR and enjoy.
+Start your video from either SMB or XBVR and enjoy. I find XBVR best.
 
